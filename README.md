@@ -78,3 +78,10 @@ The domain of the project is focused on the concept of a payment and its lifecyc
 - `PaymentCreated` and `PaymentStatusChanged` located in `domain/events.py`.  
 - Domain errors located in `domain/errors.py`.
 - Any operations with the database, RabbitMQ, HTTP or logging are outside the domain, in `application` and `infra`.
+
+## Variables
+
+- `HOST` - host of the API.
+- `PORT` - port of the API.
+- `WORKERS` - number of threads for the API.
+- see others in `config.py`
