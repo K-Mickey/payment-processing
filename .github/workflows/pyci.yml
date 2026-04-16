@@ -37,5 +37,5 @@ jobs:
             -Dsonar.projectKey=K-Mickey_payment-processing
             -Dsonar.organization=kokmickey
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.sources=payment-processing
+            -Dsonar.sources=payment_processing
             -Dsonar.tests=tests
