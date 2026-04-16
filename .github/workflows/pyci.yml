@@ -1,0 +1,41 @@
+name: Python CI
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.14
+
+      - name: Install dependencies
+        run: |
+          pip install uv
+          make install
+
+      - name: Run linter and Pytest
+        run: |
+          make check
+
+      - name: Run test coverage
+        run: |
+          make test-coverage
+
+      - name: SonarQubeScan
+        uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=K-Mickey_payment-processing
+            -Dsonar.organization=kokmickey
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.sources=payment-processing
+            -Dsonar.tests=tests
