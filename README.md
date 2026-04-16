@@ -1,6 +1,7 @@
 # Payment Processing Service
 
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=K-Mickey_payment-processing)](https://sonarcloud.io/summary/new_code?id=K-Mickey_payment-processing)
+[![Python CI](https://github.com/K-Mickey/payment-processing/actions/workflows/pyci.yml/badge.svg)](https://github.com/K-Mickey/payment-processing/actions/workflows/pyci.yml)
 
 ## Description
 
