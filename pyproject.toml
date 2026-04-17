@@ -6,6 +6,7 @@ description = "Async payment processing"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.18.4",
     "fastapi>=0.136.0",
     "pydantic-settings>=2.13.1",
     "sqlalchemy[postgresql-asyncpg]>=2.0.49",
