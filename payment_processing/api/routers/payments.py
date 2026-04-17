@@ -14,7 +14,10 @@ async def get_payments():
 
 
 @router.get("/{payment_id}")
-async def get_payment(payment_id: UUID):
+async def get_payment(
+    payment_id: UUID,
+    session,
+):
     return {"message": f"Get payment {payment_id}"}
 
 
