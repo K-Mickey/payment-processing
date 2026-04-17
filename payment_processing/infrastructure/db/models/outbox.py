@@ -12,9 +12,7 @@ from payment_processing.infrastructure.messaging import AggregateType, TopicType
 
 class Outbox(Base):
     __tablename__ = "outbox"
-    __table_args__ = (
-        Index("ix_outbox_published_at_created_at", "published_at", "created_at"),
-    )
+    __table_args__ = (Index("ix_outbox_published_at_created_at", "published_at", "created_at"),)
 
     id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),

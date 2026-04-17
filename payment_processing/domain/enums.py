@@ -11,4 +11,3 @@ class CurrencyCode(StrEnum):
     RUB = "RUB"
     USD = "USD"
     EUR = "EUR"
-    
