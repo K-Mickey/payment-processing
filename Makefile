@@ -25,4 +25,17 @@ test-coverage:
 
 check: test lint
 
-.PHONY: install lint dev start test test-coverage check
+migrate:
+	@if [ -z "$(MSG)" ]; then \
+		echo "Error: MSG is required. Usage: make migrate MSG=\"...\""; \
+		exit 1; \
+	fi; \
+	uv run alembic revision --autogenerate -m "$(MSG)"
+
+migrate-up:
+	uv run alembic upgrade head
+
+migrate-down:
+	uv run alembic downgrade -1
+
+.PHONY: install lint dev start test test-coverage check migrate migrate-up migrate-down
