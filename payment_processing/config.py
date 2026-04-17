@@ -2,7 +2,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AppSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="APP_")
+    model_config = SettingsConfigDict(
+        env_prefix="APP_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     title: str = "Payment Processing API"
     description: str = ""
@@ -12,7 +17,12 @@ class AppSettings(BaseSettings):
 
 
 class DBSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="DB_")
+    model_config = SettingsConfigDict(
+        env_prefix="DB_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     dsn: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
     echo: bool = False
@@ -24,14 +34,15 @@ class DBSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
     develop: bool = False
 
     app: AppSettings = AppSettings()
     db: DBSettings = DBSettings()
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
 
 settings = Settings()
