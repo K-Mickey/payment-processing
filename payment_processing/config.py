@@ -14,6 +14,7 @@ class AppSettings(BaseSettings):
     version: str = "0.1.0"
     docs_url: str = "/docs"
     redoc_url: str = "/redoc"
+    api_prefix: str = "/api"
 
 
 class DBSettings(BaseSettings):

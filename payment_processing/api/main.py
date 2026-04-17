@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
+from starlette.responses import RedirectResponse
 
 from payment_processing.config import settings
 from payment_processing.infrastructure import dispose_db, init_db
+
+from .routers import health_router, payments_router
 
 
 @asynccontextmanager
@@ -11,6 +14,13 @@ async def lifespan(app: FastAPI):
     init_db(settings.db)
     yield
     dispose_db()
+
+
+def get_router():
+    router = APIRouter(prefix=settings.app.api_prefix)
+    router.include_router(health_router)
+    router.include_router(payments_router)
+    return router
 
 
 app = FastAPI(
@@ -22,12 +32,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(get_router())
+
 
 @app.get("/")
-async def index():
-    return {"message": "Hello World"}
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+async def develop_handler():
+    if settings.develop:
+        return RedirectResponse(url=settings.app.docs_url)
+    return None
