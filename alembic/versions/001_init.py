@@ -39,7 +39,7 @@ def upgrade() -> None:
     op.create_index("ix_outbox_published_at_created_at", "outbox", ["published_at", "created_at"], unique=False)
     op.create_table(
         "payments",
-        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column("payment_id", sa.UUID(), nullable=False),
         sa.Column("amount", sa.Numeric(precision=18, scale=2), nullable=False),
         sa.Column("currency", sa.Enum("RUB", "USD", "EUR", name="currencycode"), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
@@ -50,7 +50,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("processed_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint("amount > 0", name="amount_positive"),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint("payment_id"),
         sa.UniqueConstraint("idempotency_key"),
     )
     op.create_index("ix_payments_idempotency_key", "payments", ["idempotency_key"], unique=True)
