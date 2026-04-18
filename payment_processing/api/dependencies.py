@@ -6,9 +6,9 @@ from payment_processing.infrastructure.db.repositories import PaymentRepository
 from payment_processing.services import PaymentService
 
 
-async def get_payment_repository(session: AsyncSession = Depends(get_session)):
+def get_payment_repository(session: AsyncSession = Depends(get_session)):
     return PaymentRepository(session)
 
 
-async def get_payment_service(payment_repository: PaymentRepository = Depends(get_payment_repository)):
+def get_payment_service(payment_repository: PaymentRepository = Depends(get_payment_repository)):
     return PaymentService(payment_repository)
