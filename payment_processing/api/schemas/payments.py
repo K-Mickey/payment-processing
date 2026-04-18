@@ -9,7 +9,7 @@ from payment_processing.domain import CurrencyCode, PaymentStatus
 
 class CreatePaymentRequest(BaseModel):
     amount: Decimal = Field(title="Payment amount", examples=["100.00"], gt=0, max_digits=18, decimal_places=2)
-    currency: CurrencyCode = Field(title="Payment currency", examples=[code for code in CurrencyCode])
+    currency: CurrencyCode = Field(title="Payment currency", examples=list(CurrencyCode))
     description: str = Field(default="", title="Payment description", examples=["Payment for order #123"])
     metadata: dict = Field(default_factory=dict, title="Payment metadata", examples=[{"order_id": "123"}])
     idempotency_key: str = Field(title="Payment idempotency key", examples=["1e4e5e6e-7e8e-9e9e-aeae-1e2e3e4e5e6e"])
@@ -27,7 +27,7 @@ class PaymentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     payment_id: UUID = Field(title="Payment ID", examples=["1e4e5e6e-7e8e-9e9e-aeae-1e2e3e4e5e6e"])
     amount: Decimal = Field(title="Payment amount", examples=["100.00"])
-    currency: CurrencyCode = Field(title="Payment currency", examples=[code for code in CurrencyCode])
+    currency: CurrencyCode = Field(title="Payment currency", examples=list(CurrencyCode))
     description: str = Field(title="Payment description", examples=["Payment for order #123"])
     metadata: dict = Field(title="Payment metadata", examples=[{"order_id": "123"}])
     status: PaymentStatus = Field(title="Payment status", examples=list(PaymentStatus))
