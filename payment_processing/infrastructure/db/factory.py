@@ -28,10 +28,10 @@ def init_db(config: DBSettings) -> None:
     )
 
 
-def dispose_db() -> None:
+async def dispose_db() -> None:
     global engine
     if engine is not None:
-        engine.dispose()
+        await engine.dispose()
         engine = None
 
 
