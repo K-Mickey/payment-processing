@@ -4,7 +4,7 @@ from fastapi import APIRouter, FastAPI
 from starlette.responses import RedirectResponse
 
 from payment_processing.config import settings
-from payment_processing.infrastructure import dispose_db, init_db
+from payment_processing.infrastructure.db import dispose_db, init_db
 
 from .routers import health_router, payments_router
 
@@ -13,7 +13,7 @@ from .routers import health_router, payments_router
 async def lifespan(app: FastAPI):
     init_db(settings.db)
     yield
-    dispose_db()
+    await dispose_db()
 
 
 def get_router():
