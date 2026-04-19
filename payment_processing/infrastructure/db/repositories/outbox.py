@@ -12,3 +12,14 @@ class OutboxRepository:
     async def get_all(self) -> list[Outbox]:
         rows = await self.session.scalars(select(OutboxModel))
         return [Outbox(**row.model_dump()) for row in rows]
+
+    async def get_not_published_messages(self, limit: int) -> list[OutboxModel]:
+        stmt = (
+            select(OutboxModel)
+            .where(OutboxModel.published_at.is_(None))
+            .order_by(Outbox.created_at)
+            .limit(limit)
+            .with_for_update(skip_locked=True)
+        )
+        rows = await self.session.scalars(stmt)
+        return list(rows)
