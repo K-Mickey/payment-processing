@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from payment_processing.config import settings
 from payment_processing.domain import PaymentStatus
 from payment_processing.infrastructure.db.repositories import PaymentRepository
+from payment_processing.infrastructure.db.repositories.outbox import OutboxRepository
 
 PAYMENTS_URL = f"{settings.app.api_prefix}/payments/"
 
@@ -138,3 +139,38 @@ async def test_get_payments(async_client: AsyncClient, async_session: AsyncSessi
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 10
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_create_payment_with_outbox(async_client: AsyncClient, async_session: AsyncSession):
+    request_json = build_payment_payload()
+    response = await async_client.post(
+        PAYMENTS_URL,
+        json=request_json,
+    )
+    assert response.status_code == 200
+
+    repository = OutboxRepository(async_session)
+    outbox_rows = await repository.get_all()
+
+    data = response.json()
+    aggregate_id = UUID(data["payment_id"])
+
+    assert len(outbox_rows) == 1
+    assert outbox_rows[0].aggregate_id == aggregate_id
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_get_payments_with_outbox(async_client: AsyncClient, async_session: AsyncSession):
+    for i in range(10):
+        request_json = build_payment_payload()
+        response = await async_client.post(
+            PAYMENTS_URL,
+            json=request_json,
+        )
+        assert response.status_code == 200
+
+    repository = OutboxRepository(async_session)
+    outbox_rows = await repository.get_all()
+
+    assert len(outbox_rows) == 10
