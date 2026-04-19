@@ -11,7 +11,6 @@ from payment_processing.domain.errors import (
     StatusMustBePending,
     StatusNotSupportedError,
 )
-from payment_processing.infrastructure.db.models import Payment as PaymentModel
 
 
 @dataclass(slots=True)
@@ -78,21 +77,6 @@ class Payment:
             webhook_url=str(webhook_url),
             created_at=datetime.now(),
             processed_at=None,
-        )
-
-    @classmethod
-    def from_orm(cls, payment_model: PaymentModel) -> Self:
-        return cls(
-            payment_id=payment_model.payment_id,
-            amount=payment_model.amount,
-            currency=payment_model.currency,
-            description=payment_model.description,
-            metadata=payment_model.payment_metadata,
-            status=payment_model.status,
-            idempotency_key=payment_model.idempotency_key,
-            webhook_url=payment_model.webhook_url,
-            created_at=payment_model.created_at,
-            processed_at=payment_model.processed_at,
         )
 
     def model_dump(self) -> dict:

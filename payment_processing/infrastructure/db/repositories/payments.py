@@ -24,13 +24,13 @@ class PaymentRepository:
         await self.session.flush()
         await self.session.commit()
 
-        return Payment.from_orm(payment_model)
+        return Payment(**payment_model.model_dump())
 
     async def get_by_id(self, payment_id: UUID) -> Payment:
         payment = await self.session.get(PaymentModel, payment_id)
         if not payment:
             raise PaymentNotFoundError(payment_id)
-        return Payment.from_orm(payment)
+        return Payment(**payment.model_dump())
 
     async def exists_by_idempotency_key(self, idempotency_key: str) -> bool:
         stmt = exists(PaymentModel).where(PaymentModel.idempotency_key == idempotency_key)
@@ -38,4 +38,4 @@ class PaymentRepository:
 
     async def get_all(self) -> list[Payment]:
         payments = await self.session.scalars(select(PaymentModel))
-        return [Payment.from_orm(payment) for payment in payments]
+        return [Payment(**payment.model_dump()) for payment in payments]

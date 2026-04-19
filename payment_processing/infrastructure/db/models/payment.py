@@ -39,3 +39,8 @@ class Payment(Base):
         if "metadata" in kwargs:
             kwargs["payment_metadata"] = kwargs.pop("metadata")
         return cls(**kwargs)
+
+    def model_dump(self):
+        fields = {col.name: getattr(self, col.name) for col in self.__table__.columns}
+        fields["metadata"] = fields.pop("payment_metadata")
+        return fields
