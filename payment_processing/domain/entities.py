@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Self
 from uuid import UUID, uuid7
@@ -42,19 +42,22 @@ class Payment:
         if type(self.webhook_url) is not str:
             raise TypeError("webhook_url must be a string")
 
-    def success(self, processed_at: datetime) -> None:
-        if self.status != PaymentStatus.PENDING:
+    def is_pending(self) -> bool:
+        return self.status == PaymentStatus.PENDING
+
+    def success(self) -> None:
+        if not self.is_pending():
             raise StatusMustBePending(self.status)
 
         self.status = PaymentStatus.SUCCESS
-        self.processed_at = processed_at
+        self.processed_at = datetime.now(UTC)
 
-    def fail(self, processed_at: datetime) -> None:
-        if self.status != PaymentStatus.PENDING:
+    def fail(self) -> None:
+        if not self.is_pending():
             raise StatusMustBePending(self.status)
 
         self.status = PaymentStatus.FAILED
-        self.processed_at = processed_at
+        self.processed_at = datetime.now(UTC)
 
     @classmethod
     def create(

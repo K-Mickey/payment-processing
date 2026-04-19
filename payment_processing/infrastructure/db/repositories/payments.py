@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import exists, select
+from sqlalchemy import exists, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payment_processing.domain import Payment
@@ -39,3 +39,12 @@ class PaymentRepository:
     async def get_all(self) -> list[Payment]:
         payments = await self.session.scalars(select(PaymentModel))
         return [Payment(**payment.model_dump()) for payment in payments]
+
+    async def update_payment_status(self, payment: Payment) -> Payment:
+        stmt = (update(PaymentModel)
+                .where(PaymentModel.payment_id == payment.payment_id)
+                .values(status=payment.status, processed_at=payment.processed_at)
+                .returning(PaymentModel))
+        payment_model = await self.session.scalar(stmt)
+        await self.session.commit()
+        return Payment(**payment_model.model_dump())
