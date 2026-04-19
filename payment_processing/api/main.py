@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
@@ -6,8 +8,11 @@ from starlette.responses import RedirectResponse
 from payment_processing.config import settings
 from payment_processing.infrastructure.db import dispose_db, init_db
 from payment_processing.infrastructure.messaging import Broker
+from payment_processing.infrastructure.messaging.outbox_publisher import OutboxPublisher
 
 from .routers import health_router, payments_router
+
+logging.basicConfig(level=logging.DEBUG)  # todo: move from here
 
 
 @asynccontextmanager
@@ -19,7 +24,19 @@ async def lifespan(app: FastAPI):
     )
     init_db(settings.db)
 
+    from payment_processing.infrastructure.db.factory import session_factory
+
+    publisher = OutboxPublisher(
+        broker=broker,
+        session_factory=session_factory,
+        batch_size=settings.outbox_batch_size,
+        pool_interval=settings.outbox_pool_interval,
+    )
+    task = asyncio.create_task(publisher.run())
+
     yield
+
+    task.cancel()
 
     await dispose_db()
     await broker.stop()

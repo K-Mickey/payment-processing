@@ -17,7 +17,7 @@ class OutboxRepository:
         stmt = (
             select(OutboxModel)
             .where(OutboxModel.published_at.is_(None))
-            .order_by(Outbox.created_at)
+            .order_by(OutboxModel.created_at)
             .limit(limit)
             .with_for_update(skip_locked=True)
         )

@@ -47,17 +47,6 @@ class RabbitMQSettings(BaseSettings):
     delay: float = 5.0
 
 
-class OutboxSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="OUTBOX_",
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
-
-    send_interval: float = 5
-
-
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -66,10 +55,12 @@ class Settings(BaseSettings):
     )
     develop: bool = False
 
+    outbox_pool_interval: float = 5
+    outbox_batch_size: int = 5
+
     app: AppSettings = AppSettings()
     db: DBSettings = DBSettings()
     broker: RabbitMQSettings = RabbitMQSettings()
-    outbox: OutboxSettings = OutboxSettings()
 
 
 settings = Settings()

@@ -32,9 +32,9 @@ class OutboxPublisher:
                     async with session.begin():
                         publish_messages = await self.transfer_messages(session)
                         logger.debug("Published %s messages", publish_messages)
-
-            except CancelledError:
-                raise
+            except KeyboardInterrupt, CancelledError:
+                logger.debug("Outbox publisher interrupted")
+                break
             except Exception as e:
                 logger.exception(e)
 

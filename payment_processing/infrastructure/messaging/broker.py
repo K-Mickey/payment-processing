@@ -3,7 +3,7 @@ from asyncio import sleep
 
 from faststream.rabbit import RabbitBroker, RabbitQueue
 
-from payment_processing.infrastructure.messaging import Outbox
+from payment_processing.infrastructure.messaging.entities import Outbox
 
 logger = logging.getLogger(__name__)
 
