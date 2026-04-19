@@ -5,15 +5,24 @@ from starlette.responses import RedirectResponse
 
 from payment_processing.config import settings
 from payment_processing.infrastructure.db import dispose_db, init_db
+from payment_processing.infrastructure.messaging import Broker
 
 from .routers import health_router, payments_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    broker = Broker(url=settings.broker.url)
+    await broker.start(
+        attempts=settings.broker.attempts,
+        delay=settings.broker.delay,
+    )
     init_db(settings.db)
+
     yield
+
     await dispose_db()
+    await broker.stop()
 
 
 def get_router():
