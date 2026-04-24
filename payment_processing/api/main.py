@@ -1,68 +1,43 @@
-import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, FastAPI
-from starlette.responses import RedirectResponse
+from fastapi import FastAPI
 
+from payment_processing.api.routers import health_router, payments_router
 from payment_processing.config import settings
 from payment_processing.infrastructure.db import dispose_db, init_db
-from payment_processing.infrastructure.messaging import Broker
-from payment_processing.infrastructure.messaging.outbox_publisher import OutboxPublisher
-
-from .routers import health_router, payments_router
-
-logging.basicConfig(level=logging.DEBUG)  # todo: move from here
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    broker = Broker(url=settings.broker.url)
-    await broker.start(
-        attempts=settings.broker.attempts,
-        delay=settings.broker.delay,
-    )
     init_db(settings.db)
+    try:
+        yield
 
-    from payment_processing.infrastructure.db.factory import session_factory
+    finally:
+        await dispose_db()
 
-    publisher = OutboxPublisher(
-        broker=broker,
-        session_factory=session_factory,
-        batch_size=settings.outbox_batch_size,
-        pool_interval=settings.outbox_pool_interval,
+
+def create_app():
+    app = FastAPI(
+        title=settings.app.title,
+        description=settings.app.description,
+        version=settings.app.version,
+        docs_url=settings.develop and settings.app.docs_url or None,
+        redoc_url=settings.develop and settings.app.redoc_url or None,
+        lifespan=lifespan,
     )
-    task = asyncio.create_task(publisher.run())
 
-    yield
+    prefix = settings.app.api_prefix
+    app.include_router(health_router, prefix=prefix)
+    app.include_router(payments_router, prefix=prefix)
 
-    task.cancel()
-
-    await dispose_db()
-    await broker.stop()
+    return app
 
 
-def get_router():
-    router = APIRouter(prefix=settings.app.api_prefix)
-    router.include_router(health_router)
-    router.include_router(payments_router)
-    return router
-
-
-app = FastAPI(
-    title=settings.app.title,
-    description=settings.app.description,
-    version=settings.app.version,
-    docs_url=settings.develop and settings.app.docs_url or None,
-    redoc_url=settings.develop and settings.app.redoc_url or None,
-    lifespan=lifespan,
-)
-
-app.include_router(get_router())
-
-
-@app.get("/")
-async def develop_handler():
-    if settings.develop:
-        return RedirectResponse(url=settings.app.docs_url)
-    return None
+def main():
+    logging.basicConfig(
+        level=settings.log_level,
+        format=settings.log_format,
+    )
+    return create_app()
