@@ -1,14 +1,15 @@
 from datetime import datetime
 from decimal import Decimal
-from uuid import UUID, uuid7
+from uuid import UUID
 
 from sqlalchemy import CheckConstraint, DateTime, Enum, Index, Numeric, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from payment_processing.domain.enums import CurrencyCode, PaymentStatus
+from payment_processing.domain import Currency, PaymentStatus
 from payment_processing.infrastructure.db.models.base import Base
+from payment_processing.utils import uuid
 
 
 class Payment(Base):
@@ -18,13 +19,13 @@ class Payment(Base):
         Index("ix_payments_idempotency_key", "idempotency_key", unique=True),
     )
 
-    payment_id: Mapped[UUID] = mapped_column(
+    id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         primary_key=True,
-        default=uuid7,
+        default=uuid,
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
-    currency: Mapped[CurrencyCode] = mapped_column(Enum(CurrencyCode), nullable=False)
+    currency: Mapped[Currency] = mapped_column(Enum(Currency), nullable=False)
     description: Mapped[str] = mapped_column(Text(), nullable=False)
     payment_metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     status: Mapped[PaymentStatus] = mapped_column(Enum(PaymentStatus), nullable=False)
@@ -33,14 +34,3 @@ class Payment(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=func.now())
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-    @classmethod
-    def create(cls, **kwargs):
-        if "metadata" in kwargs:
-            kwargs["payment_metadata"] = kwargs.pop("metadata")
-        return cls(**kwargs)
-
-    def model_dump(self):
-        fields = {col.name: getattr(self, col.name) for col in self.__table__.columns}
-        fields["metadata"] = fields.pop("payment_metadata")
-        return fields
