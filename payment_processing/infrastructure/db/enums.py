@@ -5,5 +5,5 @@ class AggregateType(StrEnum):
     PAYMENT = "payment"
 
 
-class TopicType(StrEnum):
+class RoutingKey(StrEnum):
     PAYMENT_NEW = "payment.new"
