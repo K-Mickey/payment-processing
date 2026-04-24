@@ -173,6 +173,21 @@ async def test_create_payment_with_outbox(async_client: AsyncClient, async_sessi
 
 
 @pytest.mark.asyncio(loop_scope="session")
+async def test_unique_idempotency_key_with_outbox(async_client: AsyncClient, async_session: AsyncSession):
+    request_json = build_payment_payload()
+    same_idempotency_key = {"idempotency-key": "not_unique_idempotency_key"}
+    first_response = await create_payment(async_client, request_json, same_idempotency_key)
+    assert first_response.status_code == 202
+
+    second_response = await create_payment(async_client, request_json, same_idempotency_key)
+    assert second_response.status_code == 202
+
+    outboxes = await async_session.scalars(select(OutboxModel))
+    outboxes = outboxes.all()
+    assert len(outboxes) == 1
+
+
+@pytest.mark.asyncio(loop_scope="session")
 async def test_get_payments_with_outbox(async_client: AsyncClient, async_session: AsyncSession):
     for i in range(10):
         request_json = build_payment_payload()
