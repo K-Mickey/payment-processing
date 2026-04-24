@@ -37,5 +37,9 @@ select = ["E", "F", "I", "C90"]
 
 [tool.pytest.ini_options]
 env = [
-    "DB_DSN=postgresql+asyncpg://test_user:test_password@localhost:5432/test_db",
+    "DB_USER=test_user",
+    "DB_PASSWORD=test_password",
+    "DB_NAME=test_db",
+    "DB_HOST=localhost",
+    "DB_PORT=5432",
 ]
