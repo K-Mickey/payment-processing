@@ -3,17 +3,19 @@ from typing import AsyncGenerator
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
-from payment_processing.api import app as payment_app
+from payment_processing.api.main import create_app
 from payment_processing.config import settings
-from payment_processing.infrastructure.db import get_session
+from payment_processing.infrastructure.db import dispose_db, init_db
 from payment_processing.infrastructure.db.models import Base
 
 
 @pytest_asyncio.fixture(scope="session")
 async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
-    engine = create_async_engine(url=settings.db.dsn)
+    init_db(settings.db)
+    from payment_processing.infrastructure.db.factory import engine
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -21,6 +23,8 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+    await dispose_db()
 
 
 @pytest_asyncio.fixture(scope="function", loop_scope="session")
@@ -44,15 +48,5 @@ async def async_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
 
 @pytest_asyncio.fixture(scope="session")
 async def async_client(db_engine) -> AsyncClient:
-    async def get_test_session() -> AsyncGenerator[AsyncSession, None]:
-        session_factory = async_sessionmaker(
-            bind=db_engine,
-            expire_on_commit=False,
-            autocommit=False,
-            autoflush=False,
-        )
-        async with session_factory() as session:
-            yield session
-
-    payment_app.dependency_overrides[get_session] = get_test_session
+    payment_app = create_app()
     return AsyncClient(transport=ASGITransport(payment_app), base_url="http://test")
