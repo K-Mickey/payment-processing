@@ -1,8 +1,8 @@
 """001_init
 
-Revision ID: d5ce14a08f2b
+Revision ID: 5a8e37d101c6
 Revises:
-Create Date: 2026-04-17 15:56:09.168291
+Create Date: 2026-04-23 02:55:59.216506
 
 """
 
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "d5ce14a08f2b"
+revision: str = "5a8e37d101c6"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,7 +28,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("aggregate_type", sa.Enum("PAYMENT", name="aggregatetype"), nullable=False),
         sa.Column("aggregate_id", sa.UUID(), nullable=False),
-        sa.Column("topic", sa.Enum("PAYMENT_NEW", name="topictype"), nullable=False),
+        sa.Column("routing_key", sa.Enum("PAYMENT_NEW", name="routingkey"), nullable=False),
         sa.Column("payload", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("headers", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -39,9 +39,9 @@ def upgrade() -> None:
     op.create_index("ix_outbox_published_at_created_at", "outbox", ["published_at", "created_at"], unique=False)
     op.create_table(
         "payments",
-        sa.Column("payment_id", sa.UUID(), nullable=False),
+        sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("amount", sa.Numeric(precision=18, scale=2), nullable=False),
-        sa.Column("currency", sa.Enum("RUB", "USD", "EUR", name="currencycode"), nullable=False),
+        sa.Column("currency", sa.Enum("RUB", "USD", "EUR", name="currency"), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("payment_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("status", sa.Enum("PENDING", "SUCCESS", "FAILED", name="paymentstatus"), nullable=False),
@@ -50,7 +50,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("processed_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint("amount > 0", name="amount_positive"),
-        sa.PrimaryKeyConstraint("payment_id"),
+        sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("idempotency_key"),
     )
     op.create_index("ix_payments_idempotency_key", "payments", ["idempotency_key"], unique=True)
