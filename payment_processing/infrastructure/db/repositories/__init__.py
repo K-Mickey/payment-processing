@@ -1,5 +1,9 @@
-from .payments import PaymentRepository
+from .outbox import SQLAlchemyOutboxRepository
+from .payments import SQLAlchemyPaymentRepository
+from .uow import SqlAlchemyUnitOfWork
 
 __all__ = [
-    "PaymentRepository",
+    "SQLAlchemyPaymentRepository",
+    "SQLAlchemyOutboxRepository",
+    "SqlAlchemyUnitOfWork",
 ]

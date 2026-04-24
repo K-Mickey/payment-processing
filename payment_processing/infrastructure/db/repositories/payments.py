@@ -1,50 +1,61 @@
 from uuid import UUID
 
-from sqlalchemy import exists, select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payment_processing.domain import Payment
-from payment_processing.domain.errors import PaymentNotFoundError
-from payment_processing.infrastructure.db.models import Outbox as OutboxModel
+from payment_processing.domain import IdempotencyKey, Metadata, Money, Payment, PaymentStatus, WebhookUrl
+from payment_processing.domain.interfaces import PaymentRepository
 from payment_processing.infrastructure.db.models import Payment as PaymentModel
-from payment_processing.infrastructure.messaging import Outbox
 
 
-class PaymentRepository:
+class SQLAlchemyPaymentRepository(PaymentRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_with_outbox(self, payment: Payment, outbox: Outbox) -> Payment:
-        payment_model = PaymentModel.create(**payment.model_dump())
-        self.session.add(payment_model)
-
-        outbox_model = OutboxModel(**outbox.model_dump())
-        self.session.add(outbox_model)
-
-        await self.session.flush()
-        await self.session.commit()
-
-        return Payment(**payment_model.model_dump())
-
-    async def get_by_id(self, payment_id: UUID) -> Payment:
+    async def get_by_id(self, payment_id: UUID) -> Payment | None:
         payment = await self.session.get(PaymentModel, payment_id)
         if not payment:
-            raise PaymentNotFoundError(payment_id)
-        return Payment(**payment.model_dump())
+            return None
+        return self._to_domain(payment)
 
-    async def exists_by_idempotency_key(self, idempotency_key: str) -> bool:
-        stmt = exists(PaymentModel).where(PaymentModel.idempotency_key == idempotency_key)
-        return await self.session.scalar(stmt.select())
+    async def get_by_idempotency_key(self, key: str) -> Payment | None:
+        stmt = select(PaymentModel).where(PaymentModel.idempotency_key == key)
+        model = await self.session.scalar(stmt)
+        if not model:
+            return None
+        return self._to_domain(model)
 
-    async def get_all(self) -> list[Payment]:
-        payments = await self.session.scalars(select(PaymentModel))
-        return [Payment(**payment.model_dump()) for payment in payments]
+    async def save(self, payment: Payment) -> Payment:
+        model = self._to_model(payment)
+        await self.session.merge(model)
+        await self.session.flush()
+        return self._to_domain(model)
 
-    async def update_payment_status(self, payment: Payment) -> Payment:
-        stmt = (update(PaymentModel)
-                .where(PaymentModel.payment_id == payment.payment_id)
-                .values(status=payment.status, processed_at=payment.processed_at)
-                .returning(PaymentModel))
-        payment_model = await self.session.scalar(stmt)
-        await self.session.commit()
-        return Payment(**payment_model.model_dump())
+    @staticmethod
+    def _to_domain(payment_model: PaymentModel) -> Payment:
+        return Payment(
+            id=payment_model.id,
+            amount=Money(payment_model.amount, payment_model.currency),
+            description=payment_model.description,
+            metadata=Metadata(payment_model.payment_metadata),
+            idempotency_key=IdempotencyKey(payment_model.idempotency_key),
+            webhook_url=WebhookUrl(payment_model.webhook_url),
+            status=PaymentStatus(payment_model.status),
+            created_at=payment_model.created_at,
+            processed_at=payment_model.processed_at,
+        )
+
+    @staticmethod
+    def _to_model(payment: Payment) -> PaymentModel:
+        return PaymentModel(
+            id=payment.id,
+            amount=payment.amount.amount,
+            currency=payment.amount.currency,
+            description=payment.description,
+            payment_metadata=payment.metadata.data,
+            idempotency_key=payment.idempotency_key.value,
+            webhook_url=payment.webhook_url.url,
+            status=payment.status,
+            created_at=payment.created_at,
+            processed_at=payment.processed_at,
+        )
