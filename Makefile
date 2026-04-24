@@ -8,14 +8,25 @@ install:
 lint:
 	uv run ruff check payment_processing --fix
 
-PORT ?= 8000
+APP_PORT ?= 8000
 dev:
-	uv run uvicorn payment_processing.api:app --reload --port ${PORT}
+	uv run uvicorn payment_processing.api.main:main --factory --reload --port ${APP_PORT}
 
-HOST ?= 127.0.0.1
-WORKERS ?= 1
+APP_HOST ?= 127.0.0.1
+APP_WORKERS ?= 1
 start:
-	uv run uvicorn payment_processing.api:app --host ${HOST} --port ${PORT} --workers ${WORKERS}
+	uv run uvicorn payment_processing.api.main:main \
+		--factory --host ${APP_HOST} --port ${APP_PORT} --workers ${APP_WORKERS}
+
+PAYMENT_CONSUMER_WORKERS ?= 1
+start-payment-consumer:
+	uv run faststream run payment_processing.infrastructure.broker.consumer:main \
+		--factory --workers ${PAYMENT_CONSUMER_WORKERS}
+
+OUTBOX_PRODUCER_WORKERS ?= 1
+start-outbox-producer:
+	uv run faststream run payment_processing.infrastructure.broker.producer:main \
+		--factory --workers ${OUTBOX_PRODUCER_WORKERS}
 
 test:
 	uv run pytest
@@ -38,4 +49,5 @@ migrate-up:
 migrate-down:
 	uv run alembic downgrade -1
 
-.PHONY: install lint dev start test test-coverage check migrate migrate-up migrate-down
+.PHONY: install lint dev start start-payment-consumer start-outbox-producer
+.PHONY: test test-coverage check migrate migrate-up migrate-down
