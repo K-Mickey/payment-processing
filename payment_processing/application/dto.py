@@ -15,6 +15,7 @@ class PaymentDTO:
     description: str
     metadata: dict
     status: str
+    idempotency_key: str
     created_at: datetime
     processed_at: datetime | None
     webhook_url: str
@@ -28,6 +29,7 @@ class PaymentDTO:
             description=payment.description,
             metadata=payment.metadata.data,
             status=payment.status.value,
+            idempotency_key=payment.idempotency_key.value,
             created_at=payment.created_at,
             processed_at=payment.processed_at,
             webhook_url=payment.webhook_url.url,
