@@ -1,5 +1,5 @@
-from .fake_gateway import PaymentProcessor
+from .fake_gateway import FakePaymentProcessor
 
 __all__ = [
-    "PaymentProcessor",
+    "FakePaymentProcessor",
 ]
