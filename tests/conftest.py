@@ -28,15 +28,18 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
 
 
 @pytest_asyncio.fixture(scope="function", loop_scope="session")
-async def async_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
-    async_session = async_sessionmaker(
+async def async_session_factory(db_engine) -> AsyncGenerator[async_sessionmaker, None]:
+    yield async_sessionmaker(
         bind=db_engine,
         expire_on_commit=False,
         autocommit=False,
         autoflush=False,
     )
 
-    async with async_session() as session:
+
+@pytest_asyncio.fixture(scope="function", loop_scope="session")
+async def async_session(async_session_factory) -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_factory() as session:
         yield session
 
         await session.rollback()

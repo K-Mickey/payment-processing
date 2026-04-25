@@ -42,4 +42,8 @@ env = [
     "DB_NAME=test_db",
     "DB_HOST=localhost",
     "DB_PORT=5432",
+    "PAYMENT_PROCESSING_MAX_RETRIES=3",
+    "PAYMENT_PROCESSING_BASE_DELAY=0.01",
+    "WEBHOOK_MAX_RETRIES=3",
+    "WEBHOOK_BASE_DELAY=0.01",
 ]
