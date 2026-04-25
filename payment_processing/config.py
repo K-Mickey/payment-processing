@@ -31,7 +31,7 @@ class DBSettings(BaseSettings):
 
     user: str = "postgres"
     password: str = "postgres"
-    name: str = "postgres"
+    name: str = "payment_db"
     host: str = "localhost"
     port: int = 5432
 
@@ -59,8 +59,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_format: str = "> %(asctime)s %(levelname)s [%(filename)s - %(name)s - %(lineno)d] > %(message)s"
 
-    broker_user: str = "guest"
-    broker_password: str = "guest"
+    broker_user: str = "admin"
+    broker_password: str = "admin"
     broker_host: str = "localhost"
     broker_port: int = 5672
 
