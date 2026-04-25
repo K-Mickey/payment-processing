@@ -89,7 +89,7 @@ async def process_payment(
         delay = base_delay * 2**attempt
         await asyncio.sleep(delay)
 
-    if payment:
+    if payment is not None:
         await notify_with_retry(notifier, payment, logger)
 
 
