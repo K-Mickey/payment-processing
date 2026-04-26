@@ -35,7 +35,7 @@ async def dispose_db() -> None:
         engine = None
 
 
-async def get_session_factory() -> async_sessionmaker[AsyncSession]:
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
     global session_factory
     if session_factory is None:
         raise RuntimeError("Database not initialized")
@@ -43,6 +43,6 @@ async def get_session_factory() -> async_sessionmaker[AsyncSession]:
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    session_factory = await get_session_factory()
+    session_factory = get_session_factory()
     async with session_factory() as session:
         yield session

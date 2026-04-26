@@ -10,7 +10,7 @@ from payment_processing.infrastructure.db.repositories import (
 )
 
 
-async def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key")):
+def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key")):
     if x_api_key != settings.api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -19,22 +19,22 @@ async def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key")):
     return x_api_key
 
 
-async def get_payment_repo(session: AsyncSession = Depends(get_session)) -> SQLAlchemyPaymentRepository:
+def get_payment_repo(session: AsyncSession = Depends(get_session)) -> SQLAlchemyPaymentRepository:
     return SQLAlchemyPaymentRepository(session)
 
 
 async def get_uow() -> SqlAlchemyUnitOfWork:
-    session_factory = await get_session_factory()
+    session_factory = get_session_factory()
     return SqlAlchemyUnitOfWork(session_factory)
 
 
-async def get_create_payment_handler(
+def get_create_payment_handler(
     uow: SqlAlchemyUnitOfWork = Depends(get_uow),
 ) -> CreatePaymentHandler:
     return CreatePaymentHandler(uow)
 
 
-async def get_get_payment_handler(
+def get_payment_handler(
     payment_repo: SQLAlchemyPaymentRepository = Depends(get_payment_repo),
 ) -> GetPaymentHandler:
     return GetPaymentHandler(payment_repo)

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 
-from payment_processing.api.dependencies import get_create_payment_handler, get_get_payment_handler, verify_api_key
+from payment_processing.api.dependencies import get_create_payment_handler, get_payment_handler, verify_api_key
 from payment_processing.api.schemas import CreatePaymentRequest, CreatePaymentResponse, PaymentResponse
 from payment_processing.application import (
     CreatePaymentCommand,
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/payments", tags=["payments"], dependencies=[Depends(
 @router.get("/{payment_id}", summary="Get information about payment")
 async def get_payment(
     payment_id: UUID,
-    handler: Annotated[GetPaymentHandler, Depends(get_get_payment_handler)],
+    handler: Annotated[GetPaymentHandler, Depends(get_payment_handler)],
 ) -> PaymentResponse:
     dto = await handler.execute(payment_id)
     if dto is None:

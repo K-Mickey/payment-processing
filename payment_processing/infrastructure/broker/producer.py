@@ -31,7 +31,7 @@ async def run():
     logger.debug("Broker started")
 
     try:
-        session_factory = await get_session_factory()
+        session_factory = get_session_factory()
         await run_publisher(
             session_factory=session_factory,
             batch_size=settings.outbox_batch_size,
