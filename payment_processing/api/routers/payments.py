@@ -29,7 +29,7 @@ async def get_payment(
 async def create_payment(
     params: CreatePaymentRequest,
     handler: Annotated[CreatePaymentHandler, Depends(get_create_payment_handler)],
-    idempotency_key: str = Header(..., alias="Idempotency-Key"),
+    idempotency_key: Annotated[str, Header(..., alias="Idempotency-Key")],
 ) -> CreatePaymentResponse:
     command = CreatePaymentCommand(
         amount=params.amount,
