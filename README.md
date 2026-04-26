@@ -12,11 +12,10 @@ and notifies the client via webhook.
 
 ### Key Features
 
-- Create a payment with an idempotency key.
-- Get payment information.
 - Guaranteed delivery of events through the `outbox` pattern.
 - Idempotency protection for duplicate requests.
 - Emulation of an external payment gateway: 2-5 seconds, 90% success, 10% error.
+- Dead Letter Queue for failed payments.
 - Sending notifications to `webhook_url` with repeated attempts.
 - Working in a Docker environment: PostgreSQL, RabbitMQ, API, outbox consumer, payment consumer.
 
@@ -119,7 +118,7 @@ Full list of environment variables you can find in
 After running the App you can open [Swagger](http://localhost:8000/docs) or [Redoc](http://localhost:8000/redoc) docs.
 If they can't open, check `DEVELOP` flag in `.env`, it must be `True`. Also don't forget about `API_KEY`.
 
-You can find `RabbitMQ` [here](http://localhost:15672/), default credentials `admin:admin`.
+You can find your running `RabbitMQ` [here](http://localhost:15672/), default credentials `admin:admin`.
 
 Default DSN for `PostgreSQL`: `postgresql+asyncpg://postgres:postgres@localhost:5432/payment_db`
 
