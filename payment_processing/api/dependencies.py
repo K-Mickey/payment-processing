@@ -23,7 +23,7 @@ def get_payment_repo(session: AsyncSession = Depends(get_session)) -> SQLAlchemy
     return SQLAlchemyPaymentRepository(session)
 
 
-async def get_uow() -> SqlAlchemyUnitOfWork:
+def get_uow() -> SqlAlchemyUnitOfWork:
     session_factory = get_session_factory()
     return SqlAlchemyUnitOfWork(session_factory)
 
